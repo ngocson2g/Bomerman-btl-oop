@@ -5,6 +5,7 @@ import uet.oop.bomberman.Game;
 import uet.oop.bomberman.entities.LayeredEntity;
 import uet.oop.bomberman.entities.character.Bomber;
 import uet.oop.bomberman.entities.character.enemy.Balloon;
+import uet.oop.bomberman.entities.character.enemy.Doll;
 import uet.oop.bomberman.entities.character.enemy.Oneal;
 import uet.oop.bomberman.entities.tile.Grass;
 import uet.oop.bomberman.entities.tile.Portal;
@@ -40,7 +41,7 @@ public class FileLevelLoader extends LevelLoader {
 		// TODO: cập nhật các giá trị đọc được vào _width, _height, _level, _map
 		List<String> list = new ArrayList<>();
 		try {
-			FileReader fr = new FileReader("bomberman-starter-starter-project-1\\res\\levels\\Level1.txt");//doc tep luu map
+			FileReader fr = new FileReader("bomberman-starter-starter-project-1\\res\\levels\\Level" + level + ".txt");//doc tep luu map
 			BufferedReader br = new BufferedReader(fr);
 			String line = br.readLine();
 			while (!line.equals("")) {
@@ -86,12 +87,12 @@ public class FileLevelLoader extends LevelLoader {
 						_board.addEntity(pos, new Wall(x, y, Sprite.wall));
 						break;
 					// Thêm Portal
-					/*case 'x':
+					case 'x':
 						_board.addEntity(pos, new LayeredEntity(x, y,
 								new Grass(x, y, Sprite.grass),
-								new Portal(x, y, _board, Sprite.portal),
+								new Portal(x, y, Sprite.portal, _board),
 								new Brick(x, y, Sprite.brick)));
-						break;*/
+						break;
 					// Thêm brick
 					case '*':
 						_board.addEntity(x + y * _width,
@@ -119,11 +120,10 @@ public class FileLevelLoader extends LevelLoader {
 						_board.addEntity(pos, new Grass(x, y, Sprite.grass));
 						break;
 					// Thêm doll
-					/*case '3':
+					case '3':
 						_board.addCharacter(new Doll(Coordinates.tileToPixel(x), Coordinates.tileToPixel(y) + Game.TILES_SIZE, _board));
 						_board.addEntity(x + y * _width, new Grass(x, y, Sprite.grass));
 						break;
-					*/
 					// Thêm BomItem
 					case 'b':
 						LayeredEntity layer = new LayeredEntity(x, y,

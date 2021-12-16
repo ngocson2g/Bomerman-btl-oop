@@ -124,53 +124,121 @@ public class Bomber extends Character {
     protected void calculateMove() {
         // TODO: xử lý nhận tín hiệu điều khiển hướng đi từ _input và gọi move() để thực hiện di chuyển
         // TODO: nhớ cập nhật lại giá trị cờ _moving khi thay đổi trạng thái di chuyển
-        int xa = 0, ya = 0;
-        if(_input.up) ya--;
-        if(_input.down) ya++;
-        if(_input.left) xa--;
-        if(_input.right) xa++;
-
-        if(xa != 0 || ya != 0)  {
-            move(xa * Game.getBomberSpeed(), ya * Game.getBomberSpeed());
+        if(_input.down) {
             _moving = true;
-        } else {
+            move(_x, _y + Game.getBomberSpeed());
+        }
+        if(_input.left) {
+            _moving = true;
+            move(_x - Game.getBomberSpeed(), _y);
+        }
+        if(_input.right) {
+            _moving = true;
+            move(_x + Game.getBomberSpeed(), _y);
+        }
+        if(_input.up) {
+            _moving = true;
+            move(_x, _y - Game.getBomberSpeed());
+        }
+        if(!(_input.up||_input.right||_input.left||_input.down)) {
             _moving = false;
         }
     }
 
+
     @Override
     public boolean canMove(double x, double y) {
+
         // TODO: kiểm tra có đối tượng tại vị trí chuẩn bị di chuyển đến và có thể di chuyển tới đó hay không
-        for (int c = 0; c < 4; c++) { //colision detection for each corner of the player
-            double xt = ((_x + x) + c % 2 * 9) / Game.TILES_SIZE; //divide with tiles size to pass to tile coordinate
-            double yt = ((_y + y) + c / 2 * 10 - 13) / Game.TILES_SIZE; //these values are the best from multiple tests
 
-            Entity a = _board.getEntity(xt, yt, this);
+        double loLy = y-1;
+        double loRy = y-1;
+        double upLy = y+2 - Game.TILES_SIZE ;
+        double upRy = y+2 - Game.TILES_SIZE ;
+        double upLx = x+2;
+        double loLx = x+1;
+        double upRx = x-2 + Game.TILES_SIZE*3/4;
+        double loRx = x-1+ Game.TILES_SIZE*3/4;
+        int tile_UpLx = Coordinates.pixelToTile(upLx);
+        int tile_UpLy = Coordinates.pixelToTile(upLy);
+        int tile_UpRx = Coordinates.pixelToTile(upRx);
+        int tile_UpRy = Coordinates.pixelToTile(upRy);
+        int tile_LoLx = Coordinates.pixelToTile(loLx);
+        int tile_LoLy = Coordinates.pixelToTile(loLy);
+        int tile_LoRx = Coordinates.pixelToTile(loRx);
+        int tile_LoRy = Coordinates.pixelToTile(loRy);
+        Entity a = _board.getEntity(tile_UpLx, tile_UpLy, this);
+        Entity b = _board.getEntity(tile_UpRx, tile_UpRy, this);
+        Entity c= _board.getEntity(tile_LoLx, tile_LoLy, this);
+        Entity d = _board.getEntity(tile_LoRx, tile_LoRy, this);
 
-            if(!a.collide(this))
-                return false;
-        }
+        if(!a.collide(this) || !b.collide(this) || !c.collide(this) || !d.collide(this) )
+            return false;
 
         return true;
+
+    }
+    private void soften(double xa, double ya) {
+        if(xa!=_x&&_y==ya) {
+            double near1 = ((int)ya/Game.TILES_SIZE)*Game.TILES_SIZE;
+            double near2 = ((int)ya/Game.TILES_SIZE + 1)*Game.TILES_SIZE;
+            if (ya - near1 <= 8) {
+                if(canMove(xa, near1)) {
+                    _y--;
+                    soften(xa, ya--);
+                    if(xa>_x)
+                        _direction = 4;
+                    else
+                        _direction = 3;
+                }
+            }
+            if (near2 - ya <= 8) {
+                if(canMove(xa, near2)) {
+                    _y++;
+                    move(xa, ya++);
+                    if(xa>_x)
+                        _direction = 4;
+                    else
+                        _direction = 3;
+                }
+            }
+        } else if(xa==_x&&_y!=ya){
+            double near1 = ((int)xa/Game.TILES_SIZE)*Game.TILES_SIZE ;
+            double near2 = ((int)xa/Game.TILES_SIZE + 1)*Game.TILES_SIZE;
+            if(xa - near1 <= 8) {
+                if(canMove(near1, ya)) {
+                    _x--;
+                    soften(xa--, ya);
+                }
+            }
+            if(near2 - xa <= 8) {
+                if (canMove(near2, ya)) {
+                    _x++;
+                    soften(xa++, ya);
+                    _direction = 1;
+                }
+            }
+        }
     }
 
     @Override
     public void move(double xa, double ya) {
         // TODO: sử dụng canMove() để kiểm tra xem có thể di chuyển tới điểm đã tính toán hay không và thực hiện thay đổi tọa độ _x, _y
         // TODO: nhớ cập nhật giá trị _direction sau khi di chuyển
-        if (xa > 0) _direction = 1;
-        if (xa < 0) _direction = 3;
-        if (ya > 0) _direction = 2;
-        if (ya < 0) _direction = 0;
-        if(canMove(0, ya)) { //separate the moves for the player can slide when is colliding
-            _y += ya;
+        if(_y < ya) _direction = 2;
+        if(_y > ya) _direction = 0;
+        if(_x > xa) _direction = 3;
+        if(_x < xa) _direction = 4;
+        if(canMove(xa, ya)) {
+            _x = xa;
+            _y = ya;
+        } else {
+            soften(xa, ya);
         }
 
-        if(canMove(xa, 0)) {
-            _x += xa;
-        }
 
     }
+
 
     @Override
     public boolean collide(Entity e) {
